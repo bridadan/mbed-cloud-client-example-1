@@ -23,9 +23,14 @@
 #include "application_init.h"
 #include "common_button_and_led.h"
 #include "blinky.h"
+#include "DeviceHealthLog.h"
+#include "DeviceHealth.h"
 
 // event based LED blinker, controlled via pattern_resource
 static Blinky blinky;
+
+DeviceHealthLog dhl;
+DeviceHealth dh;
 
 static void main_application(void);
 
@@ -130,14 +135,6 @@ void main_application(void)
         return;
     }
 
-    // Print some statistics of the object sizes and their heap memory consumption.
-    // NOTE: This *must* be done before creating MbedCloudClient, as the statistic calculation
-    // creates and deletes M2MSecurity and M2MDevice singleton objects, which are also used by
-    // the MbedCloudClient.
-#ifdef MBED_HEAP_STATS_ENABLED
-    print_m2mobject_stats();
-#endif
-
     // SimpleClient is used for registering and unregistering resources to a server.
     SimpleM2MClient mbedClient;
 
@@ -154,13 +151,8 @@ void main_application(void)
     // Save pointer to mbedClient so that other functions can access it.
     client = &mbedClient;
 
-#ifdef MBED_HEAP_STATS_ENABLED
-    printf("Client initialized\r\n");
-    print_heap_stats();
-#endif
-#ifdef MBED_STACK_STATS_ENABLED
-    print_stack_statistics();
-#endif
+    dh.init(&mbedClient, &dhl);
+    dh.default_metrics(DH_DYNAMIC_HEAP | DH_DYNAMIC_ALL_THREADS | DH_DYNAMIC_CPU);
 
     // Create resource for button count. Path of this resource will be: 3200/0/5501.
     button_res = mbedClient.add_cloud_resource(3200, 0, 5501, "button_resource", M2MResourceInstance::INTEGER,
@@ -185,11 +177,19 @@ void main_application(void)
     mbedClient.register_and_connect();
 
     // Check if client is registering or registered, if true sleep and repeat.
+    uint32_t wait_count = 0;
     while (mbedClient.is_register_called()) {
         static int button_count = 0;
         mcc_platform_do_wait(100);
+        wait_count++;
         if (mcc_platform_button_clicked()) {
             button_res->set_value(++button_count);
+        }
+
+        if (wait_count >= 100) {
+            wait_count = 0;
+            dh.collect();
+            dh.update();
         }
     }
 

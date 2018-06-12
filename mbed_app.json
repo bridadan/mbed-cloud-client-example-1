@@ -2,7 +2,8 @@
     "macros": [
         "PAL_USER_DEFINED_CONFIGURATION=\"sotp_fs_config_MbedOS.h\"",
         "ARM_UC_USE_PAL_BLOCKDEVICE=1",
-        "MBED_CLOUD_CLIENT_UPDATE_STORAGE=ARM_UCP_FLASHIAP_BLOCKDEVICE"
+        "MBED_CLOUD_CLIENT_UPDATE_STORAGE=ARM_UCP_FLASHIAP_BLOCKDEVICE",
+        "MBED_ALL_STATS_ENABLED"
     ],
     "target_overrides": {
         "*": {
