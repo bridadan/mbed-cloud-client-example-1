@@ -98,7 +98,7 @@ def main():
     # Set your API key in the ".mbed_cloud_config.json" file
     connect_api = ConnectAPI()
     connect_api.start_notifications()
-    data = connect_api.get_resource_value_async("0163f5c0c764000000000001001000b1", "/26250/0/4014")
+    data = connect_api.get_resource_value_async("0164001e39cb000000000001001002d5", "/26250/0/4014")
 
     while not data.is_done:
         time.sleep(0.1)
@@ -107,7 +107,7 @@ def main():
 
     if version == 1:
         metrics = DeviceMetric_v1(buffer)
-        print(metrics.timestamp)
+        print(datetime.datetime.fromtimestamp(metrics.timestamp))
         for metric in metrics.entries:
             if metric.__class__.__name__ == 'AllThreads_v1':
                 for thread in metric.threads:
