@@ -25,6 +25,7 @@
 #include "blinky.h"
 #include "DeviceHealthLog.h"
 #include "DeviceHealth.h"
+#include "NTPClient.h"
 
 // event based LED blinker, controlled via pattern_resource
 static Blinky blinky;
@@ -175,6 +176,11 @@ void main_application(void)
                  M2MBase::POST_ALLOWED, NULL, false, (void*)factory_reset, NULL);
 
     mbedClient.register_and_connect();
+
+    NTPClient ntp((NetworkInterface*) mcc_platform_get_network_interface());
+    time_t timestamp = ntp.get_timestamp();
+    set_time(timestamp);
+    printf("Setting current time via NTP: %s", ctime(&timestamp));
 
     // Check if client is registering or registered, if true sleep and repeat.
     uint32_t wait_count = 0;
